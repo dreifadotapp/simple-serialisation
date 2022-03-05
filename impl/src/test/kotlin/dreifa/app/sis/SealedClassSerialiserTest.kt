@@ -9,7 +9,7 @@ import java.util.*
 /**
  * We can use to the ToMapOfAny and FromMapOfAny
  * convention to create kotlin classes that are serialisable
- * by RSS.
+ * by SIS.
  *
  * In the example below there are multiple ways of expressing a Colours. This is similar
  * to the ideas in CSS template

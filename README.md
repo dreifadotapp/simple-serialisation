@@ -7,7 +7,7 @@ Alternatively, '**yafs**' - "yet another !@#$%^&* serialiser".
 
 ## Why SIS?
 
-There is absolutely nothing wrong with modern Java/Kotlin serialisers technically (in fact rss embeds
+There is absolutely nothing wrong with modern Java/Kotlin serialisers technically (in fact sis embeds
 [Jackson](https://github.com/FasterXML/jackson)), but at scale they have some annoying problems. These include:
 
 * ambiguities over the actual wire format due the use of reflections magic and differing opinions as to the best mapping
@@ -23,11 +23,11 @@ There is absolutely nothing wrong with modern Java/Kotlin serialisers technicall
     - supporting non-java clients is harder
     - it makes changes to wire formats problematic  (see above)
 
-RSS makes a number of simplifying assumptions that minimise these problems.
+SIS makes a number of simplifying assumptions that minimise these problems.
 
 ### 1 - Restricted set of types
 
-With RSS serialisation, only the following types are supported:
+With SIS serialisation, only the following types are supported:
 
 * a restricted set of pre agreed scalars, currently
     - Int
@@ -118,5 +118,5 @@ fun `should be a simple demo`() {
 ```
 
 see
-the [Test cases](https://github.com/dreifadotapp/simple-serialisation/blob/master/impl/src/test/kotlin/dreifa/app/rss/JsonSerialiserTest.kt)
+the [Test cases](https://github.com/dreifadotapp/simple-serialisation/blob/master/impl/src/test/kotlin/dreifa/app/sis/JsonSerialiserTest.kt)
 for more examples
