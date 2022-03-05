@@ -1,0 +1,8 @@
+rootProject.name = 'simple-serialisation'
+
+include "sis"
+project(":sis").projectDir = file("impl")
+//include "sis-examples"
+//project(":sis-examples").projectDir = file("examples")
+
+
