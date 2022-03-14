@@ -65,7 +65,7 @@ class SealedClassSerialiserTest {
 
 
     private fun roundTrip(data: Any): MapOfAny {
-        val serialised = serialiser.serialiseData(data)
-        return serialiser.deserialiseData(serialised).map!!
+        val serialised = serialiser.toPacket(data)
+        return serialiser.fromPacket(serialised).map!!
     }
 }

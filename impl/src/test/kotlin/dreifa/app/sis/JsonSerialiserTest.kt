@@ -25,10 +25,10 @@ class JsonSerialiserTest {
         val aUUID = UUID.randomUUID()
 
         // wire formt
-        val serialised = serialiser.serialiseData(aUUID)
+        val serialised = serialiser.toPacket(aUUID)
 
         // a packet that can hold any data type
-        val deserialisedPacket = serialiser.deserialiseData(serialised)
+        val deserialisedPacket = serialiser.fromPacket(serialised)
 
         // get the actual value from the packet
         val roundTrippped = deserialisedPacket.value()
@@ -179,7 +179,7 @@ class JsonSerialiserTest {
 
 
     private fun roundTrip(data: Any): Any {
-        val serialised = serialiser.serialiseData(data)
-        return serialiser.deserialiseData(serialised).any()
+        val serialised = serialiser.toPacket(data)
+        return serialiser.fromPacket(serialised).any()
     }
 }

@@ -8,10 +8,15 @@ class JsonSerialiser {
 
     init {
         val module = KotlinModule()
+        //module.addSerializer(SerialisationPacketWireFormat::class.java, XX())
         mapper.registerModule(module)
+        //mapper.reg
     }
 
-    fun deserialiseData(serialised: String): SerialisationPacket {
+    @Deprecated(message = "use fromPacket")
+    fun deserialiseData(serialised: String) = fromPacket(serialised)
+
+    fun fromPacket(serialised: String): SerialisationPacket {
         val raw = mapper.readValue(serialised, SerialisationPacketWireFormat::class.java)
         val clazz = ReflectionsSupport.forClass(raw.clazzName)
 
@@ -44,11 +49,20 @@ class JsonSerialiser {
         }
     }
 
-    fun serialiseData(data: Any): String {
+    fun toPacket(data: Any): String {
         val packet = SerialisationPacket.create(data)
         val wire = packetToWireFormat(packet)
         return mapper.writeValueAsString(wire)
     }
+
+    fun toPacketData(data: Any): String {
+        val packet = SerialisationPacket.create(data)
+        val wire = packetToWireFormat(packet)
+        return mapper.writeValueAsString(wire.any())
+    }
+
+    @Deprecated(message = "Use toPacket()")
+    fun serialiseData(data: Any): String = toPacket(data)
 
     private fun packetToWireFormat(packet: SerialisationPacket): SerialisationPacketWireFormat {
         return when {
