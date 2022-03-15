@@ -13,9 +13,6 @@ class JsonSerialiser {
         //mapper.reg
     }
 
-    @Deprecated(message = "use fromPacket")
-    fun deserialiseData(serialised: String) = fromPacket(serialised)
-
     fun fromPacket(serialised: String): SerialisationPacket {
         val raw = mapper.readValue(serialised, SerialisationPacketWireFormat::class.java)
         val clazz = ReflectionsSupport.forClass(raw.clazzName)
@@ -55,13 +52,26 @@ class JsonSerialiser {
         return mapper.writeValueAsString(wire)
     }
 
-    fun toPacketData(data: Any): String {
+    fun toPacketPayload(data: Any): String {
         val packet = SerialisationPacket.create(data)
         return serialisePacketPayload(packet)!!
     }
 
-    @Deprecated(message = "Use toPacket()")
-    fun serialiseData(data: Any): String = toPacket(data)
+    fun fromPacketPayload(serialised: String, clazzName: String): Any {
+        val clazz = ReflectionsSupport.forClass(clazzName)
+        return when {
+            ReflectionsSupport.isScalar(clazz) -> ReflectionsSupport.deserialiseScalar(serialised, clazz)
+            ReflectionsSupport.isEnum(clazz) -> ReflectionsSupport.deserialiseScalar(serialised, clazz)
+
+            //ReflectionsSupport.isEnum(clazz) -> ReflectionsSupport.de(serialised, clazz)
+
+            else ->  mapper.readValue(serialised, clazz.java)
+        }
+
+    }
+
+    @Deprecated(message = "Use toPacketPayload")
+    fun toPacketData(data: Any) = toPacketPayload(data)
 
     private fun packetToWireFormat(packet: SerialisationPacket): SerialisationPacketWireFormat {
         val payload = serialisePacketPayload(packet)

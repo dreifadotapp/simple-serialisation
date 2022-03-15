@@ -20,7 +20,7 @@ class JsonSerialiserTest {
     private val random = Random()
 
     @Test
-    fun `should be a simple demo`() {
+    fun `should serialise a simple scalar`() {
         val serialiser = JsonSerialiser()
         val aUUID = UUID.randomUUID()
 
@@ -60,15 +60,14 @@ class JsonSerialiserTest {
 
             // list
             StringList(listOf("Mary", "had", "a", "little", "lamb")),
-            ImmutableStringList(listOf("foo","bar")),
-
+            ImmutableStringList(listOf("foo", "bar")),
 
             // exceptions
             RuntimeException("This went wrong"),
             DemoException("opps!"),
 
             // Nothing
-            // these have ther own tests as the assertions are different
+            // these have their own tests as the assertions are different
         )
 
         examples.forEach {
@@ -108,8 +107,8 @@ class JsonSerialiserTest {
 
     @Test
     fun `should not serialize unsupported types`() {
-        assertThrows<RuntimeException> { serialiser.serialiseData(BadModel()) }
-        assertThrows<RuntimeException> { serialiser.serialiseData(BadEnum.random()) }
+        assertThrows<RuntimeException> { serialiser.toPacket(BadModel()) }
+        assertThrows<RuntimeException> { serialiser.toPacket(BadEnum.random()) }
     }
 
 
@@ -136,7 +135,7 @@ class JsonSerialiserTest {
 
             // lists
             StringList(listOf("Mary", "had", "a", "little", "lamb")),
-            ImmutableStringList(listOf("foo","bar")),
+            ImmutableStringList(listOf("foo", "bar")),
 
             // exceptions
             RuntimeException("This went wrong"),
@@ -175,6 +174,51 @@ class JsonSerialiserTest {
                 assertThat(ex.message, equalTo(it.second))
             }
         }
+    }
+
+
+    @Test
+    fun shouldSerialisePayloadAlone() {
+        val examples = listOf(
+            // scalars
+            Colour.random(),
+            Weapon.random(),
+            random.nextInt(),
+            random.nextLong(),
+            random.nextDouble(),
+            random.nextFloat(),
+            random.nextBoolean(),
+            BigDecimal.valueOf(random.nextDouble()),
+            String.random(10),
+            UUID.randomUUID(),
+            UniqueId.randomUUID(),
+
+            // data class
+            DemoModel(),
+
+            // MapofAny
+            mapOf("name" to "bob", "age" to random.nextInt(99)),
+
+            // list
+            StringList(listOf("Mary", "had", "a", "little", "lamb")),
+            ImmutableStringList(listOf("foo", "bar")),
+
+            // exceptions
+            //RuntimeException("This went wrong"),
+            //DemoException("opps!"),
+
+            // Nothing
+            // these have their own tests as the assertions are different
+        )
+
+        examples.forEach {
+            val startValue = it
+            val serialised = serialiser.toPacketPayload(startValue)
+            val deserialised = serialiser.fromPacketPayload(serialised, it::class.java.name)
+            assertThat(startValue, equalTo(deserialised))
+
+        }
+
     }
 
 
