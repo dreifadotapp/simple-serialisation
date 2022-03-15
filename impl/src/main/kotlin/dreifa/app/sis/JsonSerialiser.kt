@@ -57,40 +57,37 @@ class JsonSerialiser {
 
     fun toPacketData(data: Any): String {
         val packet = SerialisationPacket.create(data)
-        val wire = packetToWireFormat(packet)
-        return mapper.writeValueAsString(wire.any())
+        return serialisePacketPayload(packet)!!
     }
 
     @Deprecated(message = "Use toPacket()")
     fun serialiseData(data: Any): String = toPacket(data)
 
     private fun packetToWireFormat(packet: SerialisationPacket): SerialisationPacketWireFormat {
+        val payload = serialisePacketPayload(packet)
         return when {
-            packet.scalar != null -> {
-                SerialisationPacketWireFormat(clazzName = packet.clazzName(), scalar = packet.scalar.toString())
-            }
-            packet.data != null -> {
-                val json = mapper.writeValueAsString(packet.data)
-                SerialisationPacketWireFormat(clazzName = packet.clazzName(), data = json)
-            }
-            packet.map != null -> {
-                val json = mapper.writeValueAsString(packet.map)
-                SerialisationPacketWireFormat(clazzName = packet.clazzName(), map = json)
-            }
-            packet.list != null -> {
-                val json = mapper.writeValueAsString(packet.list)
-                SerialisationPacketWireFormat(clazzName = packet.clazzName(), list = json)
-            }
-            packet.exception != null -> {
-                val json = mapper.writeValueAsString(packet.exception)
-                SerialisationPacketWireFormat(clazzName = packet.clazzName(), exception = json)
-            }
-            packet.nothingClazz != null -> {
-                SerialisationPacketWireFormat(clazzName = packet.clazzName())
-            }
-            else -> {
-                throw java.lang.RuntimeException("Cannot map SerialisationPacket: $packet")
-            }
+            packet.scalar != null -> SerialisationPacketWireFormat(clazzName = packet.clazzName(), scalar = payload)
+            packet.data != null -> SerialisationPacketWireFormat(clazzName = packet.clazzName(), data = payload)
+            packet.map != null -> SerialisationPacketWireFormat(clazzName = packet.clazzName(), map = payload)
+            packet.list != null -> SerialisationPacketWireFormat(clazzName = packet.clazzName(), list = payload)
+            packet.exception != null -> SerialisationPacketWireFormat(
+                clazzName = packet.clazzName(),
+                exception = payload
+            )
+            packet.nothingClazz != null -> SerialisationPacketWireFormat(clazzName = packet.clazzName())
+            else -> throw java.lang.RuntimeException("Cannot map SerialisationPacket: $packet")
+        }
+    }
+
+    private fun serialisePacketPayload(packet: SerialisationPacket): String? {
+        return when {
+            packet.scalar != null -> packet.scalar.toString()
+            packet.data != null -> mapper.writeValueAsString(packet.data)
+            packet.map != null -> mapper.writeValueAsString(packet.map)
+            packet.list != null -> mapper.writeValueAsString(packet.list)
+            packet.exception != null -> mapper.writeValueAsString(packet.exception)
+            packet.nothingClazz != null -> null
+            else -> throw java.lang.RuntimeException("Cannot map SerialisationPacket: $packet")
         }
     }
 }
