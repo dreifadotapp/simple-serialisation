@@ -5,6 +5,28 @@
 
 Alternatively, '**yafs**' - "yet another !@#$%^&* serialiser".
 
+## Dependencies
+
+As with everything in [Dreifa dot App](https://dreifa.app), this library has minimal dependencies:
+
+* Kotlin 1.4
+* Java 11
+* The [Commons](https://github.com/dreifadotadotapp/commons#readme) module
+
+## Adding as a dependency
+Maven jars are deployed using JitPack. See releases for version details.
+
+```groovy
+//add jitpack repo
+maven { url "https://jitpack.io" }
+
+// add dependency
+implementation "com.github.dreifadotapp:simple-serialisation:<release>"
+```
+
+JitPack build status is at https://jitpack.io/com/github/dreifadotapp/simple-serialisation/$releaseTag/build.log
+
+
 ## Why SIS?
 
 There is absolutely nothing wrong with modern Java/Kotlin serialisers technically (in fact sis embeds
