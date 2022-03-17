@@ -56,6 +56,7 @@ data class DemoModel(
     val float: Float = Random().nextFloat(),
     val boolean: Boolean = Random().nextBoolean(),
     val colour: Colour = Colour.random(),
+    val uniqueId: UniqueId = UniqueId.randomUUID(),
     //val notRequired : NotRequired = NotRequired.instance(), // need to fix equality on NotRequired for tests to pass
     val stringList: StringList = StringList(listOf(String.random(), String.random(), String.random())),
     val immutableStringList: ImmutableStringList = ImmutableStringList(listOf("foo", "bar")),
