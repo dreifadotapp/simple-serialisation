@@ -5,7 +5,6 @@ import com.natpryce.hamkrest.equalTo
 import dreifa.app.helpers.random
 import dreifa.app.types.NotRequired
 import dreifa.app.types.StringList
-import dreifa.app.types.UniqueId
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -38,37 +37,7 @@ class JsonSerialiserTest {
 
     @Test
     fun `should round-trip data`() {
-        val examples = listOf(
-            // scalars
-            Colour.random(),
-            Weapon.random(),
-            random.nextInt(),
-            random.nextLong(),
-            random.nextDouble(),
-            random.nextFloat(),
-            random.nextBoolean(),
-            BigDecimal.valueOf(random.nextDouble()),
-            String.random(10),
-            UUID.randomUUID(),
-            UniqueId.randomUUID(),
-
-            // data class
-            DemoModel(),
-
-            // MapofAny
-            mapOf("name" to "bob", "age" to random.nextInt(99)),
-
-            // list
-            StringList(listOf("Mary", "had", "a", "little", "lamb")),
-            ImmutableStringList(listOf("foo", "bar")),
-
-            // exceptions
-            RuntimeException("This went wrong"),
-            DemoException("opps!"),
-
-            // Nothing
-            // these have their own tests as the assertions are different
-        )
+        val examples = commonExamples() + exceptionExamples()
 
         examples.forEach {
             try {
@@ -111,40 +80,9 @@ class JsonSerialiserTest {
         assertThrows<RuntimeException> { serialiser.toPacket(BadEnum.random()) }
     }
 
-
     @Test
     fun `should map to SerialisationPacket`() {
-        val examples = listOf(
-            // scalars
-            Colour.random(),
-            Weapon.random(),
-            random.nextInt(),
-            random.nextLong(),
-            random.nextDouble(),
-            random.nextFloat(),
-            random.nextBoolean(),
-            BigDecimal.valueOf(random.nextDouble()),
-            String.random(10),
-            UUID.randomUUID(),
-
-            // data class
-            DemoModel(),
-
-            // MapofAny
-            mapOf("name" to "bob", "age" to random.nextInt(99)),
-
-            // lists
-            StringList(listOf("Mary", "had", "a", "little", "lamb")),
-            ImmutableStringList(listOf("foo", "bar")),
-
-            // exceptions
-            RuntimeException("This went wrong"),
-            DemoException("opps!"),
-
-            // Nothing
-            Unit,
-            NotRequired()
-        )
+        val examples = commonExamples() + exceptionExamples() + nothingExamples()
 
         examples.forEach {
             try {
@@ -176,10 +114,26 @@ class JsonSerialiserTest {
         }
     }
 
-
     @Test
     fun shouldSerialisePayloadAlone() {
-        val examples = listOf(
+        val examples = commonExamples()
+
+        examples.forEach {
+            val startValue = it
+            val serialised = serialiser.toPacketPayload(startValue)
+            val deserialised = serialiser.fromPacketPayload(serialised, it::class.java.name)
+            assertThat(startValue, equalTo(deserialised))
+        }
+    }
+
+    private fun roundTrip(data: Any): Any {
+        val serialised = serialiser.toPacket(data)
+        return serialiser.fromPacket(serialised).any()
+    }
+
+    // these should work in all test cases
+    private fun commonExamples(): List<Any> {
+        return listOf(
             // scalars
             Colour.random(),
             Weapon.random(),
@@ -191,7 +145,6 @@ class JsonSerialiserTest {
             BigDecimal.valueOf(random.nextDouble()),
             String.random(10),
             UUID.randomUUID(),
-            UniqueId.randomUUID(),
 
             // data class
             DemoModel(),
@@ -199,31 +152,26 @@ class JsonSerialiserTest {
             // MapofAny
             mapOf("name" to "bob", "age" to random.nextInt(99)),
 
-            // list
+            // lists
             StringList(listOf("Mary", "had", "a", "little", "lamb")),
             ImmutableStringList(listOf("foo", "bar")),
-
-            // exceptions
-            //RuntimeException("This went wrong"),
-            //DemoException("opps!"),
-
-            // Nothing
-            // these have their own tests as the assertions are different
         )
-
-        examples.forEach {
-            val startValue = it
-            val serialised = serialiser.toPacketPayload(startValue)
-            val deserialised = serialiser.fromPacketPayload(serialised, it::class.java.name)
-            assertThat(startValue, equalTo(deserialised))
-
-        }
-
     }
 
+    // exception types - as exceptions don't fully serialise
+    // they need different assertions in test cases
+    private fun exceptionExamples(): List<Any> {
+        return listOf(
+            RuntimeException("This went wrong"),
+            DemoException("opps!"),
+        )
+    }
 
-    private fun roundTrip(data: Any): Any {
-        val serialised = serialiser.toPacket(data)
-        return serialiser.fromPacket(serialised).any()
+    // Types of "Nothingness"
+    private fun nothingExamples(): List<Any> {
+        return listOf(
+            Unit,
+            NotRequired(),
+        )
     }
 }
