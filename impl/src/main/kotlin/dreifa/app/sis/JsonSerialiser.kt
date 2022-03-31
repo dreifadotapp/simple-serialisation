@@ -3,8 +3,17 @@ package dreifa.app.sis
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 
-class JsonSerialiser {
-    private val mapper = SingletonMapper.mapper
+class JsonSerialiser(clazzLoader: ClassLoader? = null) {
+    private val mapper: ObjectMapper
+
+    init {
+        mapper = if (clazzLoader != null) {
+            val mapper = CachedMapper.fresh()
+            mapper.setTypeFactory(mapper.typeFactory.withClassLoader(clazzLoader))
+        } else {
+            CachedMapper.cached()
+        }
+    }
 
     fun fromPacket(serialised: String): SerialisationPacket {
         val raw = mapper.readValue(serialised, SerialisationPacketWireFormat::class.java)
@@ -58,7 +67,7 @@ class JsonSerialiser {
 
             //ReflectionsSupport.isEnum(clazz) -> ReflectionsSupport.de(serialised, clazz)
 
-            else ->  mapper.readValue(serialised, clazz.java)
+            else -> mapper.readValue(serialised, clazz.java)
         }
 
     }
@@ -94,15 +103,20 @@ class JsonSerialiser {
         }
     }
 
-    object SingletonMapper {
-        val mapper: ObjectMapper = ObjectMapper()
+    object CachedMapper {
+        private val module = KotlinModule()
+        private val cached: ObjectMapper = fresh()
 
-        init {
-            val module = KotlinModule()
+        fun fresh(): ObjectMapper {
+            val mapper = ObjectMapper()
+
             //module.addSerializer(SerialisationPacketWireFormat::class.java, XX())
             mapper.registerModule(module)
             //mapper.reg
+            return mapper
         }
+
+        fun cached(): ObjectMapper = cached
     }
 }
 
