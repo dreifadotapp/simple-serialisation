@@ -3,13 +3,13 @@ package dreifa.app.sis
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 
-class JsonSerialiser(clazzLoader: ClassLoader? = null) {
+class JsonSerialiser(private val clazzLoader: ClassLoader? = null) {
     private val mapper: ObjectMapper
 
     init {
         mapper = if (clazzLoader != null) {
-            val mapper = CachedMapper.fresh()
-            mapper.setTypeFactory(mapper.typeFactory.withClassLoader(clazzLoader))
+            val newMapper = CachedMapper.fresh()
+            newMapper.setTypeFactory(newMapper.typeFactory.withClassLoader(clazzLoader))
         } else {
             CachedMapper.cached()
         }
@@ -17,11 +17,11 @@ class JsonSerialiser(clazzLoader: ClassLoader? = null) {
 
     fun fromPacket(serialised: String): SerialisationPacket {
         val raw = mapper.readValue(serialised, SerialisationPacketWireFormat::class.java)
-        val clazz = ReflectionsSupport.forClass(raw.clazzName)
+        val clazz = ReflectionsSupport(clazzLoader).forClass(raw.clazzName)
 
         return when {
             raw.scalar != null -> {
-                val scalar = ReflectionsSupport.deserialiseScalar(raw.scalar, clazz)
+                val scalar = ReflectionsSupport(clazzLoader).deserialiseScalar(raw.scalar, clazz)
                 SerialisationPacket.create(scalar)
             }
             raw.data != null -> {
@@ -42,7 +42,7 @@ class JsonSerialiser(clazzLoader: ClassLoader? = null) {
             }
             else -> {
                 // only option left is one of the "nothing" types
-                val nothing = ReflectionsSupport.deserialiseNothing(raw.clazzName)
+                val nothing = ReflectionsSupport(clazzLoader).deserialiseNothing(raw.clazzName)
                 SerialisationPacket.create(nothing)
             }
         }
@@ -60,10 +60,10 @@ class JsonSerialiser(clazzLoader: ClassLoader? = null) {
     }
 
     fun fromPacketPayload(serialised: String, clazzName: String): Any {
-        val clazz = ReflectionsSupport.forClass(clazzName)
+        val clazz = ReflectionsSupport(clazzLoader).forClass(clazzName)
         return when {
-            ReflectionsSupport.isScalar(clazz) -> ReflectionsSupport.deserialiseScalar(serialised, clazz)
-            ReflectionsSupport.isEnum(clazz) -> ReflectionsSupport.deserialiseScalar(serialised, clazz)
+            ReflectionsSupport(clazzLoader).isScalar(clazz) -> ReflectionsSupport(clazzLoader).deserialiseScalar(serialised, clazz)
+            ReflectionsSupport(clazzLoader).isEnum(clazz) -> ReflectionsSupport(clazzLoader).deserialiseScalar(serialised, clazz)
 
             //ReflectionsSupport.isEnum(clazz) -> ReflectionsSupport.de(serialised, clazz)
 

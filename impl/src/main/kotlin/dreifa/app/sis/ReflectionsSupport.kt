@@ -10,59 +10,59 @@ import kotlin.reflect.full.isSubclassOf
 /**
  * Helpers for Kotlin/Java reflections
  */
-class ReflectionsSupport {
-
-    companion object {
-        // the allowed scalar values
-        fun isScalar(clazz: KClass<*>): Boolean {
-            return (clazz == Int::class)
-                    || (clazz == Long::class)
-                    || (clazz == Double::class)
-                    || (clazz == String::class)
-                    || (clazz == Float::class)
-                    || (clazz == Boolean::class)
-                    || (clazz == String::class)
-                    || (clazz == UUID::class)
-                    || (clazz == UniqueId::class)
-                    || (clazz == BigDecimal::class)
-        }
-
-        fun isEnum(type: KClass<out Any>) = type.isSubclassOf(Enum::class)
+class ReflectionsSupport(private val clazzLoader: ClassLoader? = null) {
 
 
-        fun isUnit(clazz: KClass<*>): Boolean {
-            return (clazz == Unit::class)
-                    || (clazz == Nothing::class)
-        }
+    // the allowed scalar values
+    fun isScalar(clazz: KClass<*>): Boolean {
+        return (clazz == Int::class)
+                || (clazz == Long::class)
+                || (clazz == Double::class)
+                || (clazz == String::class)
+                || (clazz == Float::class)
+                || (clazz == Boolean::class)
+                || (clazz == String::class)
+                || (clazz == UUID::class)
+                || (clazz == UniqueId::class)
+                || (clazz == BigDecimal::class)
+    }
 
-        fun isNotRequired(clazz: KClass<*>): Boolean {
-            return (clazz == NotRequired::class)
-        }
+    fun isEnum(type: KClass<out Any>) = type.isSubclassOf(Enum::class)
 
-        fun isDataClass(clazz: KClass<*>): Boolean {
-            return (clazz.isData)
-        }
 
-        fun isException(clazz: KClass<*>): Boolean {
-            return (clazz.isSubclassOf(Exception::class))
-        }
+    fun isUnit(clazz: KClass<*>): Boolean {
+        return (clazz == Unit::class)
+                || (clazz == Nothing::class)
+    }
 
-        fun isRawMap(clazz: KClass<*>): Boolean {
-            return (clazz.isSubclassOf(Map::class))
-        }
+    fun isNotRequired(clazz: KClass<*>): Boolean {
+        return (clazz == NotRequired::class)
+    }
 
-        fun isListSubclass(clazz: KClass<*>): Boolean {
-            return (clazz.isSubclassOf(List::class))
-        }
+    fun isDataClass(clazz: KClass<*>): Boolean {
+        return (clazz.isData)
+    }
 
-        fun isSupportedType(clazz: KClass<*>): Boolean {
-            return isScalar(clazz) ||
-                    isEnum(clazz) ||
-                    isNotRequired(clazz) ||
-                    isDataClass(clazz) ||
-                    isException(clazz) ||
-                    isListSubclass(clazz)
-        }
+    fun isException(clazz: KClass<*>): Boolean {
+        return (clazz.isSubclassOf(Exception::class))
+    }
+
+    fun isRawMap(clazz: KClass<*>): Boolean {
+        return (clazz.isSubclassOf(Map::class))
+    }
+
+    fun isListSubclass(clazz: KClass<*>): Boolean {
+        return (clazz.isSubclassOf(List::class))
+    }
+
+    fun isSupportedType(clazz: KClass<*>): Boolean {
+        return isScalar(clazz) ||
+                isEnum(clazz) ||
+                isNotRequired(clazz) ||
+                isDataClass(clazz) ||
+                isException(clazz) ||
+                isListSubclass(clazz)
+    }
 
 //        fun isMap(clazz: KClass<*>): Boolean {
 //            return (clazz.isSubclassOf(Map::class))
@@ -75,58 +75,61 @@ class ReflectionsSupport {
 //            }
 //        }
 
-        fun isRawList(clazz: KClass<out Any>): Boolean {
-            return (clazz == ArrayList::class) || (clazz == LinkedList::class)
-        }
+    fun isRawList(clazz: KClass<out Any>): Boolean {
+        return (clazz == ArrayList::class) || (clazz == LinkedList::class)
+    }
 
-        fun forClass(clazzName: String): KClass<Any> {
-            @Suppress("UNCHECKED_CAST")
-            return when (clazzName) {
-                "kotlin.Int" -> 1::class
-                "kotlin.Long" -> 1L::class
-                "kotlin.Double" -> 123.0::class
-                "kotlin.Float" -> 123.0f::class
-                "kotlin.Boolean" -> true::class
-                "kotlin.String" -> ""::class
-                "kotlin.Unit" -> Unit::class
-                else -> Class.forName(clazzName).kotlin
-            } as KClass<Any>
-        }
-
-        fun deserialiseScalar(data: String, clazz: KClass<Any>): Any {
-            return when (clazz.simpleName) {
-                "Int" -> data.toInt()
-                "Long" -> data.toLong()
-                "Double" -> data.toDouble()
-                "Float" -> data.toFloat()
-                "Boolean" -> data.toBoolean()
-                "BigDecimal" -> data.toBigDecimal()
-                "String" -> data
-                "UUID" -> UUID.fromString(data)
-                "UniqueId" -> UniqueId.fromString(data)
-                "Unit" -> Unit
-                else -> {
-                    if (isEnum(clazz)) {
-                        val method = clazz.java.getMethod("valueOf", String::class.java)
-                        val enum = method.invoke(null, data)
-                        enum
-                        //throw RuntimeException("how to build an enum")
-                    } else {
-                        throw RuntimeException("don't know what to do with $clazz")
-                    }
-                }
+    fun forClass(clazzName: String): KClass<Any> {
+        @Suppress("UNCHECKED_CAST")
+        return when (clazzName) {
+            "kotlin.Int" -> 1::class
+            "kotlin.Long" -> 1L::class
+            "kotlin.Double" -> 123.0::class
+            "kotlin.Float" -> 123.0f::class
+            "kotlin.Boolean" -> true::class
+            "kotlin.String" -> ""::class
+            "kotlin.Unit" -> Unit::class
+            else -> if (clazzLoader == null) {
+                Class.forName(clazzName).kotlin
+            } else {
+                Class.forName(clazzName, true, clazzLoader).kotlin
             }
-        }
+        } as KClass<Any>
+    }
 
-        fun deserialiseNothing(clazzName: String): Any {
-            return when (clazzName) {
-                "kotlin.Unit" -> Unit
-                "dreifa.app.types.NotRequired" -> NotRequired.instance()
-                else -> {
-                    throw RuntimeException("don't know what to do with $clazzName")
+    fun deserialiseScalar(data: String, clazz: KClass<Any>): Any {
+        return when (clazz.simpleName) {
+            "Int" -> data.toInt()
+            "Long" -> data.toLong()
+            "Double" -> data.toDouble()
+            "Float" -> data.toFloat()
+            "Boolean" -> data.toBoolean()
+            "BigDecimal" -> data.toBigDecimal()
+            "String" -> data
+            "UUID" -> UUID.fromString(data)
+            "UniqueId" -> UniqueId.fromString(data)
+            "Unit" -> Unit
+            else -> {
+                if (isEnum(clazz)) {
+                    val method = clazz.java.getMethod("valueOf", String::class.java)
+                    val enum = method.invoke(null, data)
+                    enum
+                    //throw RuntimeException("how to build an enum")
+                } else {
+                    throw RuntimeException("don't know what to do with $clazz")
                 }
             }
         }
     }
 
+    fun deserialiseNothing(clazzName: String): Any {
+        return when (clazzName) {
+            "kotlin.Unit" -> Unit
+            "dreifa.app.types.NotRequired" -> NotRequired.instance()
+            else -> {
+                throw RuntimeException("don't know what to do with $clazzName")
+            }
+        }
+    }
 }
+

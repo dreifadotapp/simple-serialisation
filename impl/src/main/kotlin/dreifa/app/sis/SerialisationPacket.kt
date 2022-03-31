@@ -1,9 +1,6 @@
 package dreifa.app.sis
 
-import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.databind.JsonSerializer
-import com.fasterxml.jackson.databind.SerializerProvider
-import com.fasterxml.jackson.databind.ser.std.StdSerializer
+
 import dreifa.app.types.MapOfAny
 import dreifa.app.types.NotRequired
 import dreifa.app.types.toMapOfAny
@@ -64,7 +61,7 @@ data class SerialisationPacket(
     private fun values(): List<Any?> = listOf(scalar, data, map, list)
 
     private fun nothing(): Any? =
-        if (isNothing()) ReflectionsSupport.deserialiseNothing(nothingClazz!!.qualifiedName!!) else null
+        if (isNothing()) ReflectionsSupport().deserialiseNothing(nothingClazz!!.qualifiedName!!) else null
 
     fun isNothing() = nothingClazz != null
     fun nothingClazz() = nothingClazz!!
@@ -89,15 +86,15 @@ data class SerialisationPacket(
             if (data is Nothing) return SerialisationPacket(nothingClazz = Nothing::class)
             if (data is NotRequired) return SerialisationPacket(nothingClazz = NotRequired::class)
 
-            if (ReflectionsSupport.isRawList(clazz)) throw RuntimeException("Raw List classes are not allowed. Must use a subclass")
-            if (ReflectionsSupport.isScalar(clazz)) return SerialisationPacket(scalar = data)
-            if (ReflectionsSupport.isDataClass(clazz)) {
+            if (ReflectionsSupport().isRawList(clazz)) throw RuntimeException("Raw List classes are not allowed. Must use a subclass")
+            if (ReflectionsSupport().isScalar(clazz)) return SerialisationPacket(scalar = data)
+            if (ReflectionsSupport().isDataClass(clazz)) {
                 if (!checkClazzMembers(data, clazz)) {
                     throw RuntimeException("$data has one more unsupported types")
                 }
                 return SerialisationPacket(data = data)
             }
-            if (ReflectionsSupport.isRawMap(clazz)) {
+            if (ReflectionsSupport().isRawMap(clazz)) {
                 val map = data as Map<*, *>
                 try {
                     val hashMap = LinkedHashMap(map) // force a consistent map implementation for the wire format
@@ -107,9 +104,9 @@ data class SerialisationPacket(
                     throw RuntimeException("Raw maps must conform to the rules of for MapofAny")
                 }
             }
-            if (ReflectionsSupport.isListSubclass(clazz)) return SerialisationPacket(list = data)
-            if (ReflectionsSupport.isException(clazz)) return SerialisationPacket(exception = data as Exception)
-            if (ReflectionsSupport.isEnum(clazz)) {
+            if (ReflectionsSupport().isListSubclass(clazz)) return SerialisationPacket(list = data)
+            if (ReflectionsSupport().isException(clazz)) return SerialisationPacket(exception = data as Exception)
+            if (ReflectionsSupport().isEnum(clazz)) {
                 if (!checkClazzMembers(data, clazz)) {
                     throw RuntimeException("$data has one more unsupported types")
                 }
@@ -126,8 +123,8 @@ data class SerialisationPacket(
                     val data = it.getter.call(instance)
                     ok = data == null
                     data?.let {
-                        ok = ReflectionsSupport.isSupportedType(data::class)
-                        if (ReflectionsSupport.isDataClass(data::class)) {
+                        ok = ReflectionsSupport().isSupportedType(data::class)
+                        if (ReflectionsSupport().isDataClass(data::class)) {
                             ok = ok && checkClazzMembers(data, data::class)
                         }
                     }
