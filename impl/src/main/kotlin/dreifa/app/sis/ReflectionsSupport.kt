@@ -12,7 +12,6 @@ import kotlin.reflect.full.isSubclassOf
  */
 class ReflectionsSupport(private val clazzLoader: ClassLoader? = null) {
 
-
     // the allowed scalar values
     fun isScalar(clazz: KClass<*>): Boolean {
         return (clazz == Int::class)
@@ -114,7 +113,6 @@ class ReflectionsSupport(private val clazzLoader: ClassLoader? = null) {
                     val method = clazz.java.getMethod("valueOf", String::class.java)
                     val enum = method.invoke(null, data)
                     enum
-                    //throw RuntimeException("how to build an enum")
                 } else {
                     throw RuntimeException("don't know what to do with $clazz")
                 }

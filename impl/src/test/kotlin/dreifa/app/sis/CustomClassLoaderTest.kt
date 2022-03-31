@@ -4,36 +4,34 @@ import com.natpryce.hamkrest.assertion.assertThat
 import com.natpryce.hamkrest.equalTo
 import dreifa.app.types.UniqueId
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.io.File
 import java.lang.RuntimeException
 import java.net.URLClassLoader
 
-class CustomClassLoaderTest
-{
+class CustomClassLoaderTest {
     @Test
     fun `should serialise classes in custom classloader`() {
+        // 1. Custom class loader
         val loader = terraFormTasksClassLoader()
-        val serialiser = JsonSerialiser(loader)
 
+        // 2. Create an instance of a class via reflections
         val className = "dreifa.app.terraform.tasks.TFInitModuleRequest"
-
         val clazz = loader.loadClass(className).kotlin
-
         val data = clazz
             .constructors
-            .single {it.parameters.size == 1}
+            .single { it.parameters.size == 1 }
             .call(UniqueId.alphanumeric())
 
-        //println(clazz)
-        //println(data)
-
-        val roundTripped = roundTrip(serialiser,data)
-        //println(roundTripped)
-
+        // 3. works if  class loader is passed
+        val roundTripped = roundTrip(JsonSerialiser(loader), data)
         assertThat(roundTripped, equalTo(data))
+
+        // 4. fails for regular serialiser
+        assertThrows<ClassNotFoundException> { roundTrip(JsonSerialiser(), data) }
     }
 
-    private fun roundTrip(serialiser : JsonSerialiser, data: Any): Any {
+    private fun roundTrip(serialiser: JsonSerialiser, data: Any): Any {
         val serialised = serialiser.toPacket(data)
         return serialiser.fromPacket(serialised).any()
     }

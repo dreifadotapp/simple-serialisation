@@ -5,23 +5,29 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 
 class JsonSerialiser(private val clazzLoader: ClassLoader? = null) {
     private val mapper: ObjectMapper
+    private val reflectionsSupport: ReflectionsSupport
 
     init {
-        mapper = if (clazzLoader != null) {
+        mapper = if (clazzLoader == null) {
+            CachedMapper.cached()
+        } else {
             val newMapper = CachedMapper.fresh()
             newMapper.setTypeFactory(newMapper.typeFactory.withClassLoader(clazzLoader))
+        }
+        reflectionsSupport = if (clazzLoader == null) {
+            ReflectionsSupport()
         } else {
-            CachedMapper.cached()
+            ReflectionsSupport(clazzLoader)
         }
     }
 
     fun fromPacket(serialised: String): SerialisationPacket {
         val raw = mapper.readValue(serialised, SerialisationPacketWireFormat::class.java)
-        val clazz = ReflectionsSupport(clazzLoader).forClass(raw.clazzName)
+        val clazz = reflectionsSupport.forClass(raw.clazzName)
 
         return when {
             raw.scalar != null -> {
-                val scalar = ReflectionsSupport(clazzLoader).deserialiseScalar(raw.scalar, clazz)
+                val scalar = reflectionsSupport.deserialiseScalar(raw.scalar, clazz)
                 SerialisationPacket.create(scalar)
             }
             raw.data != null -> {
@@ -42,7 +48,7 @@ class JsonSerialiser(private val clazzLoader: ClassLoader? = null) {
             }
             else -> {
                 // only option left is one of the "nothing" types
-                val nothing = ReflectionsSupport(clazzLoader).deserialiseNothing(raw.clazzName)
+                val nothing = reflectionsSupport.deserialiseNothing(raw.clazzName)
                 SerialisationPacket.create(nothing)
             }
         }
@@ -60,20 +66,22 @@ class JsonSerialiser(private val clazzLoader: ClassLoader? = null) {
     }
 
     fun fromPacketPayload(serialised: String, clazzName: String): Any {
-        val clazz = ReflectionsSupport(clazzLoader).forClass(clazzName)
+        val clazz = reflectionsSupport.forClass(clazzName)
         return when {
-            ReflectionsSupport(clazzLoader).isScalar(clazz) -> ReflectionsSupport(clazzLoader).deserialiseScalar(serialised, clazz)
-            ReflectionsSupport(clazzLoader).isEnum(clazz) -> ReflectionsSupport(clazzLoader).deserialiseScalar(serialised, clazz)
-
-            //ReflectionsSupport.isEnum(clazz) -> ReflectionsSupport.de(serialised, clazz)
+            reflectionsSupport.isScalar(clazz) -> reflectionsSupport.deserialiseScalar(
+                serialised,
+                clazz
+            )
+            reflectionsSupport.isEnum(clazz) -> reflectionsSupport.deserialiseScalar(
+                serialised,
+                clazz
+            )
 
             else -> mapper.readValue(serialised, clazz.java)
         }
 
     }
 
-    @Deprecated(message = "Use toPacketPayload")
-    fun toPacketData(data: Any) = toPacketPayload(data)
 
     private fun packetToWireFormat(packet: SerialisationPacket): SerialisationPacketWireFormat {
         val payload = serialisePacketPayload(packet)
@@ -109,10 +117,8 @@ class JsonSerialiser(private val clazzLoader: ClassLoader? = null) {
 
         fun fresh(): ObjectMapper {
             val mapper = ObjectMapper()
-
             //module.addSerializer(SerialisationPacketWireFormat::class.java, XX())
             mapper.registerModule(module)
-            //mapper.reg
             return mapper
         }
 
