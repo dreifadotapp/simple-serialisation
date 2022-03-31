@@ -93,6 +93,7 @@ class MapModel(private val name: String) : ToMapOfAny {
     }
 }
 
+data class EmbeddedUniqueId(val theId : UniqueId)
 
 //open class CustomError(): Error
 //
