@@ -52,9 +52,9 @@ class JsonSerialiser {
         return mapper.writeValueAsString(wire)
     }
 
-    fun toPacketPayload(data: Any): String {
+    fun toPacketPayload(data: Any): String? {
         val packet = SerialisationPacket.create(data)
-        return serialisePacketPayload(packet)!!
+        return serialisePacketPayload(packet)
     }
 
     fun fromPacketPayload(serialised: String, clazzName: String): Any {

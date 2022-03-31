@@ -121,7 +121,7 @@ class JsonSerialiserTest {
         examples.forEach {
             val startValue = it
             val serialised = serialiser.toPacketPayload(startValue)
-            val deserialised = serialiser.fromPacketPayload(serialised, it::class.java.name)
+            val deserialised = serialiser.fromPacketPayload(serialised!!, it::class.java.name)
             assertThat(startValue, equalTo(deserialised))
         }
     }
