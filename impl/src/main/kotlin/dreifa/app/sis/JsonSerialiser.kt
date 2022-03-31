@@ -4,14 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 
 class JsonSerialiser {
-    private val mapper: ObjectMapper = ObjectMapper()
-
-    init {
-        val module = KotlinModule()
-        //module.addSerializer(SerialisationPacketWireFormat::class.java, XX())
-        mapper.registerModule(module)
-        //mapper.reg
-    }
+    private val mapper = SingletonMapper.mapper
 
     fun fromPacket(serialised: String): SerialisationPacket {
         val raw = mapper.readValue(serialised, SerialisationPacketWireFormat::class.java)
@@ -98,6 +91,17 @@ class JsonSerialiser {
             packet.exception != null -> mapper.writeValueAsString(packet.exception)
             packet.nothingClazz != null -> null
             else -> throw java.lang.RuntimeException("Cannot map SerialisationPacket: $packet")
+        }
+    }
+
+    object SingletonMapper {
+        val mapper: ObjectMapper = ObjectMapper()
+
+        init {
+            val module = KotlinModule()
+            //module.addSerializer(SerialisationPacketWireFormat::class.java, XX())
+            mapper.registerModule(module)
+            //mapper.reg
         }
     }
 }
