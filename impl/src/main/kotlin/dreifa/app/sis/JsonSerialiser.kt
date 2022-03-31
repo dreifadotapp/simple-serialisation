@@ -2,6 +2,7 @@ package dreifa.app.sis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import dreifa.app.types.UniqueId
 
 class JsonSerialiser(private val clazzLoader: ClassLoader? = null) {
     private val mapper: ObjectMapper
@@ -117,7 +118,8 @@ class JsonSerialiser(private val clazzLoader: ClassLoader? = null) {
 
         fun fresh(): ObjectMapper {
             val mapper = ObjectMapper()
-            //module.addSerializer(SerialisationPacketWireFormat::class.java, XX())
+            module.addSerializer(UniqueId::class.java, UniqueIdSerialiser())
+            module.addDeserializer(UniqueId::class.java, UniqueIdDeserialiser())
             mapper.registerModule(module)
             return mapper
         }
