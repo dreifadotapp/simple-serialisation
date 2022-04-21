@@ -9,7 +9,7 @@ Alternatively, '**yafs**' - "yet another !@#$%^&* serialiser".
 
 As with everything in [Dreifa dot App](https://dreifa.app), this library has minimal dependencies:
 
-* Kotlin 1.4
+* Kotlin 1.5
 * Java 11
 * The [Commons](https://github.com/dreifadotadotapp/commons#readme) module
 
