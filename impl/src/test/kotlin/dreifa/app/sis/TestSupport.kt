@@ -61,6 +61,7 @@ data class DemoModel(
     val stringList: StringList = StringList(listOf(String.random(), String.random(), String.random())),
     val immutableStringList: ImmutableStringList = ImmutableStringList(listOf("foo", "bar")),
     val exception: DemoException = DemoException("oops"),
+    val mapOfAny: Map<String, Any?> = mapOf("string" to String.random(), "null" to null),
     val nested: DemoModel? = null
 )
 
@@ -93,7 +94,7 @@ class MapModel(private val name: String) : ToMapOfAny {
     }
 }
 
-data class EmbeddedUniqueId(val theId : UniqueId)
+data class EmbeddedUniqueId(val theId: UniqueId)
 
 //open class CustomError(): Error
 //

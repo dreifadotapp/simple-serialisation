@@ -121,8 +121,7 @@ data class SerialisationPacket(
             clazz.memberProperties.forEach {
                 if ((it.visibility == KVisibility.PUBLIC) && ok) {
                     val data = it.getter.call(instance)
-                    ok = data == null
-                    data?.let {
+                    if (data != null) {
                         ok = ReflectionsSupport().isSupportedType(data::class)
                         if (ReflectionsSupport().isDataClass(data::class)) {
                             ok = ok && checkClazzMembers(data, data::class)

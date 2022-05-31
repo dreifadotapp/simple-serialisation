@@ -146,8 +146,9 @@ class JsonSerialiserTest {
             String.random(10),
             UUID.randomUUID(),
 
-            // data class
+            // data classs
             DemoModel(),
+            DemoModel(nested = DemoModel()),
 
             // MapofAny
             mapOf("name" to "bob", "age" to random.nextInt(99)),

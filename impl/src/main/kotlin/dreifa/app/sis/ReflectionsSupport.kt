@@ -60,7 +60,8 @@ class ReflectionsSupport(private val clazzLoader: ClassLoader? = null) {
                 isNotRequired(clazz) ||
                 isDataClass(clazz) ||
                 isException(clazz) ||
-                isListSubclass(clazz)
+                isListSubclass(clazz) ||
+                isRawMap(clazz)
     }
 
 //        fun isMap(clazz: KClass<*>): Boolean {
