@@ -14,24 +14,14 @@ class ReflectionsSupport(private val clazzLoader: ClassLoader? = null) {
 
     // the allowed scalar values
     fun isScalar(clazz: KClass<*>): Boolean {
-        return (clazz == Int::class)
-                || (clazz == Long::class)
-                || (clazz == Double::class)
-                || (clazz == String::class)
-                || (clazz == Float::class)
-                || (clazz == Boolean::class)
-                || (clazz == String::class)
-                || (clazz == UUID::class)
-                || (clazz == UniqueId::class)
-                || (clazz == BigDecimal::class)
+        return (clazz == Int::class) || (clazz == Long::class) || (clazz == Double::class) || (clazz == String::class) || (clazz == Float::class) || (clazz == Boolean::class) || (clazz == String::class) || (clazz == UUID::class) || (clazz == UniqueId::class) || (clazz == BigDecimal::class)
     }
 
     fun isEnum(type: KClass<out Any>) = type.isSubclassOf(Enum::class)
 
 
     fun isUnit(clazz: KClass<*>): Boolean {
-        return (clazz == Unit::class)
-                || (clazz == Nothing::class)
+        return (clazz == Unit::class) || (clazz == Nothing::class)
     }
 
     fun isNotRequired(clazz: KClass<*>): Boolean {
@@ -51,17 +41,18 @@ class ReflectionsSupport(private val clazzLoader: ClassLoader? = null) {
     }
 
     fun isListSubclass(clazz: KClass<*>): Boolean {
-        return (clazz.isSubclassOf(List::class))
+        return (clazz.isSubclassOf(List::class)) && !isRawList(clazz)
     }
 
+
     fun isSupportedType(clazz: KClass<*>): Boolean {
-        return isScalar(clazz) ||
-                isEnum(clazz) ||
-                isNotRequired(clazz) ||
-                isDataClass(clazz) ||
-                isException(clazz) ||
-                isListSubclass(clazz) ||
-                isRawMap(clazz)
+        return isScalar(clazz)
+                || isEnum(clazz)
+                || isNotRequired(clazz)
+                || isDataClass(clazz)
+                || isException(clazz)
+                || isListSubclass(clazz)
+                || isRawMap(clazz)
     }
 
 //        fun isMap(clazz: KClass<*>): Boolean {
@@ -76,12 +67,13 @@ class ReflectionsSupport(private val clazzLoader: ClassLoader? = null) {
 //        }
 
     fun isRawList(clazz: KClass<out Any>): Boolean {
-        return (clazz == ArrayList::class) || (clazz == LinkedList::class)
+        return (clazz == ArrayList::class)
+                || (clazz == LinkedList::class)
+                || (clazz.qualifiedName == "java.util.Arrays.ArrayList")
     }
 
     fun forClass(clazzName: String): KClass<Any> {
-        @Suppress("UNCHECKED_CAST")
-        return when (clazzName) {
+        @Suppress("UNCHECKED_CAST") return when (clazzName) {
             "kotlin.Int" -> 1::class
             "kotlin.Long" -> 1L::class
             "kotlin.Double" -> 123.0::class

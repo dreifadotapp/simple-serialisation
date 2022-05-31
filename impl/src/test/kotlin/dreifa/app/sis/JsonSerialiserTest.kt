@@ -76,8 +76,11 @@ class JsonSerialiserTest {
 
     @Test
     fun `should not serialize unsupported types`() {
-        assertThrows<RuntimeException> { serialiser.toPacket(BadModel()) }
-        assertThrows<RuntimeException> { serialiser.toPacket(BadEnum.random()) }
+        failingExamples().forEach {
+            assertThrows<RuntimeException>("$it should not be serializable") { serialiser.toPacket(it) }
+        }
+
+        //assertThrows<RuntimeException> { serialiser.toPacket(BadEnum.random()) }
     }
 
     @Test
@@ -173,6 +176,25 @@ class JsonSerialiserTest {
         return listOf(
             Unit,
             NotRequired(),
+        )
+    }
+
+    private fun failingExamples(): List<Any> {
+        return listOf(
+            Date(),
+            BadModelA(),
+            BadModelB(),
+            BadModelC(),
+            BadModelD(),
+            BadEnum.random(),
+
+            // types of rawlist
+            listOf(1,2,3),
+            ArrayList<String>(),
+            LinkedList<String>(),
+
+            // maps that embed unsupported types
+            //mapOf("bad" to BadModelA())
         )
     }
 }

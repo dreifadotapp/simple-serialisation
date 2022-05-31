@@ -5,6 +5,7 @@ import dreifa.app.types.*
 import java.io.File
 import java.lang.RuntimeException
 import java.util.*
+import kotlin.collections.ArrayList
 
 enum class Colour {
     Red, Green, Blue;
@@ -24,7 +25,7 @@ enum class Weapon(val weaponName: String, val damage: Int) {
     }
 }
 
-enum class BadEnum(val enumName: String, val bad: BadModel = BadModel()) {
+enum class BadEnum(val enumName: String, val bad: BadModelA = BadModelA()) {
     One("One"),
     Two("Two"),
     Three("Three");
@@ -66,7 +67,21 @@ data class DemoModel(
 )
 
 // not serializable
-data class BadModel(val file: File = File("."))
+// as we are testing failures, only a single attribute is allowed, hence BadModelA, BadModelB and so on
+data class BadModelA(
+    val file: File = File("."),
+
+    //val badEnum: BadEnum = BadEnum.random()
+)
+
+data class BadModelB(val rawList: List<Int> = listOf(1, 2, 3))
+
+data class BadModelC(val rawList: List<Int> = ArrayList())
+
+data class BadModelD(val rawList: List<Int> = LinkedList())
+
+
+
 
 class ImmutableStringList(items: List<String>) : SimpleImmutableList<String>(items)
 
